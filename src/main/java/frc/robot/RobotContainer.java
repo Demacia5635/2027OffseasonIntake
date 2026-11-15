@@ -8,48 +8,44 @@ import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.demacia.utils.DemaciaUtils;
+import frc.demacia.utils.controller.CommandController;
+import frc.demacia.utils.controller.CommandController.ControllerType;
 import frc.demacia.utils.log.LogManager;
+import frc.robot.constants.Constants;
+import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.commands.CalibrationCommand;
+import frc.robot.commands.ControllerTestingCommand;
+import frc.robot.commands.IntakeCommand;
 
-/**
- * This class is where the bulk of the robot should be declared. Since Command-based is a
- * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
- * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
- * subsystems, commands, and trigger mappings) should be declared here.
- */
-public class RobotContainer implements Sendable{
+public class RobotContainer implements Sendable {
 
   public static boolean isComp = false;
   private static boolean hasRemovedFromLog = false;
   public static boolean isRed = false;
 
-  // The robot's subsystems and commands are defined here...
+  // Subsystem & controller:
+  private final IntakeSubsystem intake;
+  private final CommandController controller;
+  private final ControllerTestingCommand controllerTestingCommand;
 
-
-  // Replace with CommandPS4Controller or CommandJoystick if needed
-
-  /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+    intake = new IntakeSubsystem();
+    controller = new CommandController(Constants.ControllerConstants.XBOX_CONTROLLER_PORT, ControllerType.kXbox);
+
     SmartDashboard.putData("RC", this);
+    SmartDashboard.putData("IntakeSubsystem", intake);
     new DemaciaUtils(() -> getIsComp(), () -> getIsRed());
-    
+    controllerTestingCommand = new ControllerTestingCommand(controller,intake);
+    intake.setDefaultCommand(new IntakeCommand(intake)); 
+    // intake.setDefaultCommand(new ControllerTestingCommand(controller,intake)); // change to controllerTestingCommand if you want to test with a controller
     // Configure the trigger bindings
     configureBindings();
   }
 
-  /**
-   * Use this method to define your trigger->command mappings. Triggers can be created via the
-   * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
-   * predicate, or via the named factories in {@link
-   * edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for {@link
-   * CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller
-   * PS4} controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
-   * joysticks}.
-   */
   private void configureBindings() {
-    
+    controller.downButton().onTrue(
+      new CalibrationCommand(intake));
   }
 
   public static boolean getIsRed() {
@@ -66,7 +62,7 @@ public class RobotContainer implements Sendable{
 
   public static void setIsComp(boolean isComp) {
     RobotContainer.isComp = isComp;
-    if(!hasRemovedFromLog && isComp) {
+    if (!hasRemovedFromLog && isComp) {
       hasRemovedFromLog = true;
       LogManager.removeInComp();
     }
@@ -78,13 +74,7 @@ public class RobotContainer implements Sendable{
     builder.addBooleanProperty("isComp", RobotContainer::getIsComp, RobotContainer::setIsComp);
   }
 
-  /**
-   * Use this to pass the autonomous command to the main {@link Robot} class.
-   *
-   * @return the command to run in autonomous
-   */
   public Command getAutonomousCommand() {
-    // An example command will be run in autonomous
     return null;
   }
 }
