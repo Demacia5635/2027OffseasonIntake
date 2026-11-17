@@ -10,6 +10,7 @@ import frc.robot.subsystems.IntakeSubsystem;
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class CalibrationCommand extends Command {
   public final IntakeSubsystem intake;
+
   public CalibrationCommand(IntakeSubsystem intake) {
     this.intake = intake;
 
@@ -17,17 +18,18 @@ public class CalibrationCommand extends Command {
   }
 
   @Override
-  public void initialize() {}
+  public void initialize() {
+  }
 
   @Override
   public void execute() {
-    intake.setDeployDuty(-0.1); // moves the deploy motor a bit until it hits the limit switch
+    intake.setDeployDuty(-0.1); // moves the deploy motor until it hits the limit switch
   }
 
   @Override
   public void end(boolean interrupted) {
+    intake.stopDeploy();
     if (!interrupted) {
-      intake.stopDeploy();
       intake.setCalibrated();
     }
 
@@ -35,6 +37,6 @@ public class CalibrationCommand extends Command {
 
   @Override
   public boolean isFinished() {
-    return intake.isDeployedClosed();
+    return intake.isDeployClosed();
   }
 }

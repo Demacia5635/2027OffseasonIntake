@@ -12,20 +12,21 @@ import frc.demacia.utils.motors.TalonFXConfig;
 public final class IntakeConstants {
 
         // Adjust as needed
-        public static final boolean IS_BRAKE = true;
         public static final boolean IS_INVERTED = false;
         public static final Canbus CANBUS = Canbus.Rio;
         public static final double MAX_CURRENT = 40;
         public static final double GEAR_RATIO = 1;
 
         // Rollers motor config
-        public static final int ROLLERS_MOTOR_ID = 5; // Change
+        public static final int ROLLERS_MOTOR_ID = 1; // Change
         public static final String ROLLERS_MOTOR_NAME = "Rollers Motor";
+        public static final boolean ROLLERS_BRAKE = true;
+        public static final boolean ROLLERS_INVERT = false;
 
         public static final TalonFXConfig ROLLERS_MOTOR_CONFIG = new TalonFXConfig(ROLLERS_MOTOR_ID, CANBUS,
                         ROLLERS_MOTOR_NAME)
-                        .withBrake(IS_BRAKE)
-                        .withInvert(IS_INVERTED)
+                        .withBrake(ROLLERS_BRAKE)
+                        .withInvert(ROLLERS_INVERT)
                         .withCurrent(MAX_CURRENT);
 
         public static final double KP = 1;
@@ -42,23 +43,27 @@ public final class IntakeConstants {
         // Deploy motor config
         public static final int DEPLOY_MOTOR_ID = 2; // Change
         public static final String DEPLOY_MOTOR_NAME = "Deploy Motor";
+        public static final boolean DEPLOY_BRAKE = true;
+        public static final boolean DEPLOY_INVERT = false;
 
         public static final TalonFXConfig DEPLOY_MOTOR_CONFIG = new TalonFXConfig(DEPLOY_MOTOR_ID, CANBUS,
                         DEPLOY_MOTOR_NAME)
-                        .withBrake(IS_BRAKE)
+                        .withBrake(DEPLOY_BRAKE)
                         .withPID(KP, KI, KD, KS, KV, KA, KG)
-                        .withInvert(IS_INVERTED)
+                        .withInvert(DEPLOY_INVERT)
                         .withCurrent(MAX_CURRENT)
                         .withRadiansMotor(GEAR_RATIO)
                         .withMotionParam(MOTION_MAGIC_VELOCITY, MOTION_MAGIC_ACCEL, MOTION_MAGIC_JERK);
         // Aligner motor config
-        public static final int ALIGNER_MOTOR_ID = 10; // Change
+        public static final int ALIGNER_MOTOR_ID = 3; // Change
         public static final String ALIGNER_MOTOR_NAME = "Aligner Motor";
+        public static final boolean ALIGNER_BRAKE = true;
+        public static final boolean ALIGNER_INVERT = false;
 
         public static final TalonFXConfig ALIGNER_MOTOR_CONFIG = new TalonFXConfig(ALIGNER_MOTOR_ID, CANBUS,
                         ALIGNER_MOTOR_NAME)
-                        .withBrake(IS_BRAKE)
-                        .withInvert(IS_INVERTED)
+                        .withBrake(ALIGNER_BRAKE)
+                        .withInvert(ALIGNER_INVERT)
                         .withCurrent(MAX_CURRENT);
 
         // Limit Switch

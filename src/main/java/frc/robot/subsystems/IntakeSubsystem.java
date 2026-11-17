@@ -6,11 +6,13 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.demacia.utils.motors.TalonFXMotor;
 import frc.demacia.utils.sensors.LimitSwitch;
+import frc.robot.commands.CalibrationCommand;
 import frc.robot.constants.IntakeConstants.IntakeState;
 
 import static frc.robot.constants.IntakeConstants.*;
@@ -24,7 +26,7 @@ public class IntakeSubsystem extends SubsystemBase {
   private final LimitSwitch deployLimitSwitch;
 
   private IntakeState state;
-  private boolean isCalibrated;
+  private boolean isCalibrated = RobotBase.isSimulation(); // if its a simulation, set is calibrated to true
 
   private double testDeployAngle = 0;
   private double testRollersDuty = 0;
@@ -37,12 +39,13 @@ public class IntakeSubsystem extends SubsystemBase {
     deployLimitSwitch = new LimitSwitch(LIMIT_SWITCH_CONFIG);
 
     SmartDashboard.putData("Intake Subsystem", this);
-    state = IntakeState.IDLE; // default
+    SmartDashboard.putData("Calibration Command", new CalibrationCommand(this));
     addStateChooser();
   }
 
   public void addStateChooser() {
     SendableChooser<IntakeState> stateChooser = new SendableChooser<>();
+    stateChooser.setDefaultOption(IntakeState.IDLE.name(), IntakeState.IDLE); // default
     for (IntakeState state : IntakeState.values()) {
       stateChooser.addOption(state.name(), state);
     }
@@ -67,15 +70,15 @@ public class IntakeSubsystem extends SubsystemBase {
     deployMotor.setMotion(position);
   }
 
-  public void setDeployAngle(double deployAngle) {
-    setDeployPosition(MathUtil.clamp(deployAngle, CLOSED_DEPLOY_ANGLE, OPEN_DEPLOY_ANGLE)); // limit the angle to only
-                                                                                            // between the closed angle
-                                                                                            // to the open angle
+  public void setDeployAngle(double angle) {
+    double clampedAngle = MathUtil.clamp(angle, CLOSED_DEPLOY_ANGLE, OPEN_DEPLOY_ANGLE); // limit the angle to only between the closed and open angle
+    setDeployPosition(clampedAngle); 
   }
 
   public void setCalibrated() {
     deployMotor.setEncoderPosition(CLOSED_DEPLOY_ANGLE);
     isCalibrated = true;
+    setState(IntakeState.CLOSED);
   }
 
   public boolean isCalibrated() {
@@ -83,6 +86,9 @@ public class IntakeSubsystem extends SubsystemBase {
   }
 
   public boolean isAtAngle(double deployAngle) {
+    if (RobotBase.isSimulation()) { // if it's a simulation, just return true
+    return true;
+    }
     double currentAngle = deployMotor.getCurrentAngle();
     return (Math.abs(currentAngle - deployAngle) < ANGLE_TOLORANCE);
   }
@@ -97,7 +103,7 @@ public class IntakeSubsystem extends SubsystemBase {
     return Math.toDegrees(deployMotor.getCurrentPosition());
   }
 
-  public boolean isDeployedClosed() {
+  public boolean isDeployClosed() {
     return !deployLimitSwitch.get(); // if it's not pressed it returns true so just invert it
   }
 

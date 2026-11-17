@@ -16,7 +16,6 @@ public class IntakeCommand extends Command {
     addRequirements(intake);
   }
 
-
   @Override
   public void initialize() {
   }
@@ -25,9 +24,19 @@ public class IntakeCommand extends Command {
   public void execute() {
     switch (intake.getState()) {
       case INTAKING, EJECTING, DEPLOYED_IDLE, CLOSED:
-        intake.setDeployAngle(intake.getState().deployAngle);
-        intake.setRollersDuty(intake.getState().rollersDuty);
-        intake.setAlignerDuty(intake.getState().alignerDuty);
+        if (intake.isCalibrated()) { // only set the deploy angle if it's calibrated
+          intake.setDeployAngle(intake.getState().deployAngle);
+          if (intake.isAtAngle(intake.getState().deployAngle)) { // if its at the right angle, start the other motors at the correct duties
+            intake.setRollersDuty(intake.getState().rollersDuty);
+            intake.setAlignerDuty(intake.getState().alignerDuty);
+          } else { 
+            intake.setRollersDuty(0); // if the deploy isn't at the right angle, set power for rollers + aligner to 0
+            intake.setAlignerDuty(0);
+          }
+        } else {
+          intake.stopAll(); // if the deploy isn't calibrated, stop all
+        }
+
         break;
 
       case TESTING:
@@ -37,8 +46,8 @@ public class IntakeCommand extends Command {
         break;
 
       case IDLE:
-      intake.stopAll();
-      break;
+        intake.stopAll();
+        break;
     }
   }
 
