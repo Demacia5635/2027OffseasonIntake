@@ -5,11 +5,12 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.demacia.utils.motors.TalonFXMotor;
+import frc.demacia.utils.sensors.LimitSwitch;
 import frc.robot.constants.IntakeConstants.IntakeState;
 
 import static frc.robot.constants.IntakeConstants.*;
@@ -20,18 +21,22 @@ public class IntakeSubsystem extends SubsystemBase {
   private final TalonFXMotor alignerMotor;
 
   private final TalonFXMotor deployMotor;
-  private final DigitalInput deployLimitSwitch;
+  private final LimitSwitch deployLimitSwitch;
 
   private IntakeState state;
-
   private boolean isCalibrated;
+
+  private double testDeployAngle = 0;
+  private double testRollersDuty = 0;
+  private double testAlignerDuty = 0;
 
   public IntakeSubsystem() {
     rollersMotor = new TalonFXMotor(ROLLERS_MOTOR_CONFIG);
     alignerMotor = new TalonFXMotor(ALIGNER_MOTOR_CONFIG);
     deployMotor = new TalonFXMotor(DEPLOY_MOTOR_CONFIG);
-    deployLimitSwitch = new DigitalInput(LIMIT_SWITCH_ID);
+    deployLimitSwitch = new LimitSwitch(LIMIT_SWITCH_CONFIG);
 
+    SmartDashboard.putData("Intake Subsystem", this);
     state = IntakeState.IDLE; // default
     addStateChooser();
   }
@@ -41,7 +46,7 @@ public class IntakeSubsystem extends SubsystemBase {
     for (IntakeState state : IntakeState.values()) {
       stateChooser.addOption(state.name(), state);
     }
-    stateChooser.onChange(newState -> this.state = newState);
+    stateChooser.onChange(this::setState);
     SmartDashboard.putData("State Chooser", stateChooser);
   }
 
@@ -63,25 +68,25 @@ public class IntakeSubsystem extends SubsystemBase {
   }
 
   public void setDeployAngle(double deployAngle) {
-    double currentAngle = deployMotor.getCurrentAngle();
-    if (Math.abs(currentAngle - deployAngle) < ANGLE_TOLORANCE) {
-      stopDeploy();
-    } else {
-      deployAngle = MathUtil.clamp(deployAngle, CLOSED_DEPLOY_ANGLE, OPEN_DEPLOY_ANGLE); // limit the angle to only
-                                                                                         // between the closed angle to
-                                                                                         // the open angle
-      setDeployPosition(deployAngle);
-    }
-
+    setDeployPosition(MathUtil.clamp(deployAngle, CLOSED_DEPLOY_ANGLE, OPEN_DEPLOY_ANGLE)); // limit the angle to only
+                                                                                            // between the closed angle
+                                                                                            // to the open angle
   }
 
   public void setCalibrated() {
+    deployMotor.setEncoderPosition(CLOSED_DEPLOY_ANGLE);
     isCalibrated = true;
   }
 
   public boolean isCalibrated() {
     return isCalibrated;
   }
+
+  public boolean isAtAngle(double deployAngle) {
+    double currentAngle = deployMotor.getCurrentAngle();
+    return (Math.abs(currentAngle - deployAngle) < ANGLE_TOLORANCE);
+  }
+
   // Getters
 
   public double getRollersVelocity() {
@@ -95,6 +100,21 @@ public class IntakeSubsystem extends SubsystemBase {
   public boolean isDeployedClosed() {
     return !deployLimitSwitch.get(); // if it's not pressed it returns true so just invert it
   }
+
+  // Get test values
+
+  public double getTestDeployAngle() {
+    return testDeployAngle;
+  }
+
+  public double getTestRollersDuty() {
+    return testRollersDuty;
+  }
+
+  public double getTestAlignerDuty() {
+    return testAlignerDuty;
+  }
+  
 
   // Stop
   public void stopRollers() {
@@ -115,8 +135,17 @@ public class IntakeSubsystem extends SubsystemBase {
     stopAligner();
   }
 
-  // Intake state
+
+  // Set state and reset values for TESTING
+  public void resetTestValues() {
+    testDeployAngle = 0;
+    testRollersDuty = 0;
+    testAlignerDuty = 0;
+  }
   public void setState(IntakeState newState) {
+    if (this.state == IntakeState.TESTING && newState!= IntakeState.TESTING) { // if you change a state after you're in testing, it resets the test values back to 0
+      resetTestValues();
+    } 
     state = newState;
   }
 
@@ -124,7 +153,13 @@ public class IntakeSubsystem extends SubsystemBase {
     return state;
   }
 
-
+  @Override
+  public void initSendable(SendableBuilder builder) {
+    super.initSendable(builder);
+    builder.addDoubleProperty("Target Deploy Angle (Degrees)",() -> Math.toDegrees(testDeployAngle), (angle) -> testDeployAngle = Math.toRadians(angle));
+    builder.addDoubleProperty("Target Rollers Duty",() -> testRollersDuty, (duty) -> testRollersDuty = duty);
+    builder.addDoubleProperty("Target Aligner Duty",() -> testAlignerDuty, (duty) -> testAlignerDuty = duty);
+  }
   @Override
   public void periodic() {
   }

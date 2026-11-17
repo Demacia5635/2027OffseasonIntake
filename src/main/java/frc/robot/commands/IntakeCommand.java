@@ -4,16 +4,10 @@
 
 package frc.robot.commands;
 
-import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.IntakeSubsystem;
 
 public class IntakeCommand extends Command {
-
-  // for TESTING:
-  private double targetDeployAngle;
-  private double targetRollersDuty;
-  private double targetAlignerDuty;
 
   private final IntakeSubsystem intake;
 
@@ -22,14 +16,6 @@ public class IntakeCommand extends Command {
     addRequirements(intake);
   }
 
-  // for TESTING:
-  @Override
-  public void initSendable(SendableBuilder builder) {
-    super.initSendable(builder);
-    builder.addDoubleProperty("Target Deploy Angle (Degrees)", () -> targetDeployAngle, (angle) -> targetDeployAngle = Math.toRadians(angle));
-    builder.addDoubleProperty("Target Rollers Duty", () -> targetRollersDuty, (duty) -> targetRollersDuty = duty);
-    builder.addDoubleProperty("Target Aligner Duty", () -> targetAlignerDuty, (duty) -> targetAlignerDuty = duty);
-  }
 
   @Override
   public void initialize() {
@@ -45,9 +31,9 @@ public class IntakeCommand extends Command {
         break;
 
       case TESTING:
-        intake.setDeployAngle(targetDeployAngle);
-        intake.setRollersDuty(targetRollersDuty);
-        intake.setAlignerDuty(targetAlignerDuty);
+        intake.setDeployAngle(intake.getTestDeployAngle());
+        intake.setRollersDuty(intake.getTestRollersDuty());
+        intake.setAlignerDuty(intake.getTestAlignerDuty());
         break;
 
       case IDLE:

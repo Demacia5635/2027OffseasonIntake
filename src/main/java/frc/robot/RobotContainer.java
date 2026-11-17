@@ -25,27 +25,29 @@ public class RobotContainer implements Sendable {
   public static boolean isRed = false;
 
   // Subsystem & controller:
-  private final IntakeSubsystem intake;
+  private final IntakeSubsystem intakeSubsystem;
+  private final IntakeCommand intakeCommand;
   private final CommandController controller;
-  private final ControllerTestingCommand controllerTestingCommand;
+  private final ControllerTestingCommand controllerTestingCommand; 
 
   public RobotContainer() {
-    intake = new IntakeSubsystem();
+    intakeSubsystem = new IntakeSubsystem();
+    intakeCommand = new IntakeCommand(intakeSubsystem);
     controller = new CommandController(Constants.ControllerConstants.XBOX_CONTROLLER_PORT, ControllerType.kXbox);
 
     SmartDashboard.putData("RC", this);
-    SmartDashboard.putData("IntakeSubsystem", intake);
+
     new DemaciaUtils(() -> getIsComp(), () -> getIsRed());
-    controllerTestingCommand = new ControllerTestingCommand(controller,intake);
-    intake.setDefaultCommand(new IntakeCommand(intake)); 
+    controllerTestingCommand = new ControllerTestingCommand(controller,intakeSubsystem);
+    intakeSubsystem.setDefaultCommand(intakeCommand); 
     // intake.setDefaultCommand(new ControllerTestingCommand(controller,intake)); // change to controllerTestingCommand if you want to test with a controller
-    // Configure the trigger bindings
+
     configureBindings();
   }
 
   private void configureBindings() {
     controller.downButton().onTrue(
-      new CalibrationCommand(intake));
+      new CalibrationCommand(intakeSubsystem));
   }
 
   public static boolean getIsRed() {
