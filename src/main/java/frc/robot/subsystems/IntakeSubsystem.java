@@ -9,6 +9,7 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.demacia.utils.motors.TalonFXMotor;
 import frc.demacia.utils.sensors.LimitSwitch;
@@ -40,6 +41,9 @@ public class IntakeSubsystem extends SubsystemBase {
 
     SmartDashboard.putData("Intake Subsystem", this);
     SmartDashboard.putData("Calibration Command", new CalibrationCommand(this));
+    SmartDashboard.putData("Set brake deploy", new InstantCommand(() -> {setDeployNeutralMode(true);}).ignoringDisable(true));
+    SmartDashboard.putData("Set coast deploy", new InstantCommand(() -> {setDeployNeutralMode(false);}).ignoringDisable(true));
+    
     addStateChooser();
   }
 
@@ -75,13 +79,17 @@ public class IntakeSubsystem extends SubsystemBase {
     setDeployPosition(clampedAngle); 
   }
 
+  public void setDeployNeutralMode(boolean isBrake) {
+    deployMotor.setNeutralMode(isBrake);
+  }
+
   public void setCalibrated() {
     deployMotor.setEncoderPosition(CLOSED_DEPLOY_ANGLE);
     isCalibrated = true;
     setState(IntakeState.CLOSED);
   }
 
-  public boolean isCalibrated() {
+  public boolean getIsCalibrated() {
     return isCalibrated;
   }
 
@@ -162,9 +170,12 @@ public class IntakeSubsystem extends SubsystemBase {
   @Override
   public void initSendable(SendableBuilder builder) {
     super.initSendable(builder);
+    builder.setSmartDashboardType("IntakeSubsystem");
+
     builder.addDoubleProperty("Target Deploy Angle (Degrees)",() -> Math.toDegrees(testDeployAngle), (angle) -> testDeployAngle = Math.toRadians(angle));
     builder.addDoubleProperty("Target Rollers Duty",() -> testRollersDuty, (duty) -> testRollersDuty = duty);
     builder.addDoubleProperty("Target Aligner Duty",() -> testAlignerDuty, (duty) -> testAlignerDuty = duty);
+    builder.addBooleanProperty("Is Calibratred", () -> getIsCalibrated(), null);
   }
   @Override
   public void periodic() {

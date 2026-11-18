@@ -7,6 +7,8 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.IntakeSubsystem;
 
+import static frc.robot.constants.IntakeConstants.*;
+
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class CalibrationCommand extends Command {
   public final IntakeSubsystem intake;
@@ -23,7 +25,7 @@ public class CalibrationCommand extends Command {
 
   @Override
   public void execute() {
-    intake.setDeployDuty(-0.1); // moves the deploy motor until it hits the limit switch
+    intake.setDeployDuty(CALIBRATION_DUTY); // moves the deploy motor until it hits the limit switch
   }
 
   @Override
