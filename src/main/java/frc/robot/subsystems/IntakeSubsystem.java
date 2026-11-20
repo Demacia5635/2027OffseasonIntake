@@ -27,7 +27,8 @@ public class IntakeSubsystem extends SubsystemBase {
   private final LimitSwitch deployLimitSwitch;
 
   private IntakeState state;
-  private boolean isCalibrated = RobotBase.isSimulation(); // if its a simulation, set is calibrated to true
+
+  private boolean isCalibrated;
 
   private double testDeployAngle = 0;
   private double testRollersDuty = 0;
@@ -41,15 +42,18 @@ public class IntakeSubsystem extends SubsystemBase {
 
     SmartDashboard.putData("Intake Subsystem", this);
     SmartDashboard.putData("Calibration Command", new CalibrationCommand(this));
-    SmartDashboard.putData("Set brake deploy", new InstantCommand(() -> {setDeployNeutralMode(true);}).ignoringDisable(true));
-    SmartDashboard.putData("Set coast deploy", new InstantCommand(() -> {setDeployNeutralMode(false);}).ignoringDisable(true));
+    SmartDashboard.putData("Set Brake Deploy", new InstantCommand(this::setDeployBrake, this).ignoringDisable(true));
+    SmartDashboard.putData("Set Coast Deploy", new InstantCommand(this::setDeployCoast, this).ignoringDisable(true));
+    SmartDashboard.putData("Start Manual Calibration", new InstantCommand(this::startManualCalibration, this));
+    SmartDashboard.putData("Finish Manual Calibration", new InstantCommand(this::finishManualCalibration, this));
     
     addStateChooser();
   }
 
+
   public void addStateChooser() {
     SendableChooser<IntakeState> stateChooser = new SendableChooser<>();
-    stateChooser.setDefaultOption(IntakeState.IDLE.name(), IntakeState.IDLE); // default
+    stateChooser.setDefaultOption(IntakeState.IDLE.name(), IntakeState.IDLE); // default  
     for (IntakeState state : IntakeState.values()) {
       stateChooser.addOption(state.name(), state);
     }
@@ -57,7 +61,6 @@ public class IntakeSubsystem extends SubsystemBase {
     SmartDashboard.putData("State Chooser", stateChooser);
   }
 
-  // Set power for all motors
   public void setRollersDuty(double duty) {
     rollersMotor.setDuty(duty);
   }
@@ -75,12 +78,29 @@ public class IntakeSubsystem extends SubsystemBase {
   }
 
   public void setDeployAngle(double angle) {
-    double clampedAngle = MathUtil.clamp(angle, CLOSED_DEPLOY_ANGLE, OPEN_DEPLOY_ANGLE); // limit the angle to only between the closed and open angle
+    double clampedAngle = MathUtil.clamp(angle, CLOSED_DEPLOY_ANGLE, OPEN_DEPLOY_ANGLE); // limit deploy angle to only between the closed and open angle
     setDeployPosition(clampedAngle); 
   }
 
-  public void setDeployNeutralMode(boolean isBrake) {
-    deployMotor.setNeutralMode(isBrake);
+  // Coast or brake
+  public void setDeployBrake() {
+    deployMotor.setNeutralMode(true);
+  }
+
+    public void setDeployCoast() {
+    deployMotor.setNeutralMode(false);
+  }
+
+  // Calibration
+  public void startManualCalibration() {
+    stopAll();
+    setDeployCoast();;
+    isCalibrated = false;
+  }
+    public void finishManualCalibration() {
+    deployMotor.setEncoderPosition(CLOSED_DEPLOY_ANGLE);
+    setDeployBrake();
+    isCalibrated = true;
   }
 
   public void setCalibrated() {
@@ -93,30 +113,20 @@ public class IntakeSubsystem extends SubsystemBase {
     return isCalibrated;
   }
 
-  public boolean isAtAngle(double deployAngle) {
-    if (RobotBase.isSimulation()) { // if it's a simulation, just return true
-    return true;
-    }
+  public boolean isAtAngle(double deployAngle) {    
     double currentAngle = deployMotor.getCurrentAngle();
     return (Math.abs(currentAngle - deployAngle) < ANGLE_TOLORANCE);
   }
 
-  // Getters
-
-  public double getRollersVelocity() {
-    return rollersMotor.getCurrentVelocity();
-  }
-
-  public double getIntakeDeployAngle() {
-    return Math.toDegrees(deployMotor.getCurrentPosition());
+  public double getDeployAngle() {
+    return deployMotor.getCurrentAngle();
   }
 
   public boolean isDeployClosed() {
-    return !deployLimitSwitch.get(); // if it's not pressed it returns true so just invert it
+    return !deployLimitSwitch.get(); 
   }
 
   // Get test values
-
   public double getTestDeployAngle() {
     return testDeployAngle;
   }
@@ -175,7 +185,8 @@ public class IntakeSubsystem extends SubsystemBase {
     builder.addDoubleProperty("Target Deploy Angle (Degrees)",() -> Math.toDegrees(testDeployAngle), (angle) -> testDeployAngle = Math.toRadians(angle));
     builder.addDoubleProperty("Target Rollers Duty",() -> testRollersDuty, (duty) -> testRollersDuty = duty);
     builder.addDoubleProperty("Target Aligner Duty",() -> testAlignerDuty, (duty) -> testAlignerDuty = duty);
-    builder.addBooleanProperty("Is Calibratred", () -> getIsCalibrated(), null);
+    builder.addBooleanProperty("Is Calibrated", () -> getIsCalibrated(), null);
+    builder.addDoubleProperty("Deploy Angle ()",() -> Math.toDegrees(getDeployAngle()),null);
   }
   @Override
   public void periodic() {

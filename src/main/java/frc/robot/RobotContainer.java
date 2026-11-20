@@ -14,7 +14,6 @@ import frc.demacia.utils.controller.CommandController.ControllerType;
 import frc.demacia.utils.log.LogManager;
 import frc.robot.constants.Constants;
 import frc.robot.subsystems.IntakeSubsystem;
-import frc.robot.commands.CalibrationCommand;
 import frc.robot.commands.ControllerTestingCommand;
 import frc.robot.commands.IntakeCommand;
 
@@ -28,7 +27,7 @@ public class RobotContainer implements Sendable {
   private final IntakeSubsystem intakeSubsystem;
   private final IntakeCommand intakeCommand;
   private final CommandController controller;
-  private final ControllerTestingCommand controllerTestingCommand; 
+  private final ControllerTestingCommand controllerTestingCommand;
 
   public RobotContainer() {
     intakeSubsystem = new IntakeSubsystem();
@@ -36,19 +35,19 @@ public class RobotContainer implements Sendable {
     controller = new CommandController(Constants.ControllerConstants.XBOX_CONTROLLER_PORT, ControllerType.kXbox);
 
     SmartDashboard.putData("RC", this);
-
     new DemaciaUtils(() -> getIsComp(), () -> getIsRed());
-    controllerTestingCommand = new ControllerTestingCommand(controller,intakeSubsystem);
-    intakeSubsystem.setDefaultCommand(intakeCommand); 
-    // intake.setDefaultCommand(new ControllerTestingCommand(controller,intake)); // change to controllerTestingCommand if you want to test with a controller
 
+
+    controllerTestingCommand = new ControllerTestingCommand(controller, intakeSubsystem);
+    intakeSubsystem.setDefaultCommand(intakeCommand);
+
+
+    // intake.setDefaultCommand(new ControllerTestingCommand(controller,intake));
+    // change to controllerTestingCommand if you want to test with a controller
     configureBindings();
   }
 
-  private void configureBindings() {
-    controller.downButton().onTrue(
-      new CalibrationCommand(intakeSubsystem));
-  }
+  private void configureBindings() {}
 
   public static boolean getIsRed() {
     return isRed;

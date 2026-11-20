@@ -26,11 +26,11 @@ public class IntakeCommand extends Command {
       case INTAKING, EJECTING, DEPLOYED_IDLE, CLOSED:
         if (intake.getIsCalibrated()) { // only set the deploy angle if it's calibrated
           intake.setDeployAngle(intake.getState().deployAngle);
-          if (intake.isAtAngle(intake.getState().deployAngle)) { // if its at the right angle, start the other motors at the correct duties
+          if (intake.isAtAngle(intake.getState().deployAngle)) { // if it's at the right angle, start the other motors at the correct duties
             intake.setRollersDuty(intake.getState().rollersDuty);
             intake.setAlignerDuty(intake.getState().alignerDuty);
           } else { 
-            intake.setRollersDuty(0); // if the deploy isn't at the right angle, set power for rollers + aligner to 0
+            intake.setRollersDuty(0); // if the deploy isn't at the right angle, set duty for rollers + aligner to 0
             intake.setAlignerDuty(0);
           }
         } else {

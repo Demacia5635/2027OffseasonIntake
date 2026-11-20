@@ -12,23 +12,24 @@ import frc.demacia.utils.motors.TalonFXConfig;
 public final class IntakeConstants {
 
         // Adjust as needed
-        public static final boolean IS_INVERTED = false;
         public static final Canbus CANBUS = Canbus.Rio;
-        public static final double MAX_CURRENT = 40;
-        public static final double GEAR_RATIO = 1;
 
         // Rollers motor config
-        public static final int ROLLERS_MOTOR_ID = 1; // Change
+        public static final int ROLLERS_MOTOR_ID = 1;
         public static final String ROLLERS_MOTOR_NAME = "Rollers Motor";
         public static final boolean ROLLERS_BRAKE = true;
         public static final boolean ROLLERS_INVERT = false;
+        public static final double ROLLERS_GEAR_RATIO = 1;
+        public static final double ROLLERS_MAX_CURRENT = 40;
 
         public static final TalonFXConfig ROLLERS_MOTOR_CONFIG = new TalonFXConfig(ROLLERS_MOTOR_ID, CANBUS,
                         ROLLERS_MOTOR_NAME)
                         .withBrake(ROLLERS_BRAKE)
                         .withInvert(ROLLERS_INVERT)
-                        .withCurrent(MAX_CURRENT);
+                        .withCurrent(ROLLERS_MAX_CURRENT)
+                        .withRadiansMotor(ROLLERS_GEAR_RATIO);
 
+        // TODO: Change PID
         public static final double KP = 1;
         public static final double KI = 1;
         public static final double KD = 1;
@@ -37,41 +38,45 @@ public final class IntakeConstants {
         public static final double KA = 1;
         public static final double KG = 1;
 
-    private static final double MOTION_MAGIC_VELOCITY = 80;
-    private static final double MOTION_MAGIC_ACCEL = 160;
-    private static final double MOTION_MAGIC_JERK = 0;
+        // TODO: Change Motion Magic
+        private static final double MOTION_MAGIC_VELOCITY = 80;
+        private static final double MOTION_MAGIC_ACCEL = 160;
+        private static final double MOTION_MAGIC_JERK = 0;
+
         // Deploy motor config
-        public static final int DEPLOY_MOTOR_ID = 2; // Change
+        public static final int DEPLOY_MOTOR_ID = -1;
         public static final String DEPLOY_MOTOR_NAME = "Deploy Motor";
         public static final boolean DEPLOY_BRAKE = true;
         public static final boolean DEPLOY_INVERT = false;
+        public static final double MAX_DEPLOY_CURRENT = 40;
 
         public static final TalonFXConfig DEPLOY_MOTOR_CONFIG = new TalonFXConfig(DEPLOY_MOTOR_ID, CANBUS,
                         DEPLOY_MOTOR_NAME)
                         .withBrake(DEPLOY_BRAKE)
                         .withPID(KP, KI, KD, KS, KV, KA, KG)
                         .withInvert(DEPLOY_INVERT)
-                        .withCurrent(MAX_CURRENT)
-                        .withRadiansMotor(GEAR_RATIO)
+                        .withCurrent(MAX_DEPLOY_CURRENT)
+                        .withRadiansMotor(ROLLERS_GEAR_RATIO)
                         .withMotionParam(MOTION_MAGIC_VELOCITY, MOTION_MAGIC_ACCEL, MOTION_MAGIC_JERK);
         // Aligner motor config
-        public static final int ALIGNER_MOTOR_ID = 3; // Change
+        public static final int ALIGNER_MOTOR_ID = -1;
         public static final String ALIGNER_MOTOR_NAME = "Aligner Motor";
         public static final boolean ALIGNER_BRAKE = true;
         public static final boolean ALIGNER_INVERT = false;
+        public static final double MAX_ALIGNER_CURRENT = 40;
 
         public static final TalonFXConfig ALIGNER_MOTOR_CONFIG = new TalonFXConfig(ALIGNER_MOTOR_ID, CANBUS,
                         ALIGNER_MOTOR_NAME)
                         .withBrake(ALIGNER_BRAKE)
                         .withInvert(ALIGNER_INVERT)
-                        .withCurrent(MAX_CURRENT);
+                        .withCurrent(MAX_ALIGNER_CURRENT);
 
         // Limit Switch
-        public static final int LIMIT_SWITCH_ID = 1; // Change
+        public static final int LIMIT_SWITCH_ID = 1;
         public static final String LIMIT_SWITCH_NAME = "Deploy Limit Switch";
 
-        public static final LimitSwitchConfig LIMIT_SWITCH_CONFIG = new LimitSwitchConfig(LIMIT_SWITCH_ID,LIMIT_SWITCH_NAME);
-
+        public static final LimitSwitchConfig LIMIT_SWITCH_CONFIG = new LimitSwitchConfig(LIMIT_SWITCH_ID,
+                        LIMIT_SWITCH_NAME);
 
         // Other
         public static final double DEPLOY_POWER = 0.3;
@@ -82,17 +87,18 @@ public final class IntakeConstants {
 
         public static final double CALIBRATION_DUTY = -0.1;
 
-        public static final double CLOSED_DEPLOY_ANGLE = Math.toRadians(0.0); // Change
-        public static final double OPEN_DEPLOY_ANGLE = Math.toRadians(90.0); // Change
-        public static final double ANGLE_TOLORANCE = Math.toRadians(5); // Change
-
+        // TODO: Change deploy angles
+        public static final double CLOSED_DEPLOY_ANGLE = Math.toRadians(0.0);
+        public static final double OPEN_DEPLOY_ANGLE = Math.toRadians(90.0); 
+        public static final double ANGLE_TOLORANCE = Math.toRadians(5); 
 
         public enum IntakeState {
 
                 INTAKING(ROLLERS_POWER, ALIGNER_POWER, OPEN_DEPLOY_ANGLE), // Deployed & rollers + aligner are on
-                EJECTING(-ROLLERS_POWER, -ALIGNER_POWER, OPEN_DEPLOY_ANGLE), // Deployed and rollers + aligner are on but reversed (spitting the coral out)
+                EJECTING(-ROLLERS_POWER, -ALIGNER_POWER, OPEN_DEPLOY_ANGLE), // Deployed and rollers + aligner are on
+                                                                             // but reversed (spitting the coral out)
                 CLOSED(0, 0, CLOSED_DEPLOY_ANGLE), // Inside the robot, rollers + aligner are off
-                DEPLOYED_IDLE(0,0,OPEN_DEPLOY_ANGLE), // Deployed, rollers + aligner are off
+                DEPLOYED_IDLE(0, 0, OPEN_DEPLOY_ANGLE), // Deployed, rollers + aligner are off
                 IDLE(0, 0, 0), // Default state, nothing is on
                 TESTING(0, 0, 0); // Testing (can change values in elastic)
 
@@ -106,15 +112,6 @@ public final class IntakeConstants {
                         this.alignerDuty = alignerDuty;
                 }
         }
-
-
-
-
-
-
-
-
-
 
         // if you need to add more (template):
 
